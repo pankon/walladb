@@ -38,6 +38,7 @@ struct WallaClient {
 
 struct WallaDb {
     char *filename;
+    char *data;
     long pos;
     long scale_factor;
     WallaNode root;
@@ -49,7 +50,6 @@ struct WallaDb {
         WallaClient *client;
     };
 }
-
 
 /* 
  * Create a walladb server
