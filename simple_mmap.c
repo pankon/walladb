@@ -74,7 +74,7 @@ void SimpleMmapPleaseDisposeOfThisCharArray(
 
     if (0 != munmap(mmapped_data->data, mmapped_data->size))
     {
-        PRINT_ERROR("munmap error");
+        fprintf("munmap error", stderr);
     }
     close(mmapped_data->handle);
 }
