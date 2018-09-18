@@ -18,54 +18,54 @@
 #ifndef __WALLA_DB_H__
 #define __WALLA_DB_H__
 
-struct WallaPos {
+typedef struct WallaPos {
     long x;
     long y;
     long z;
-}
+} WallaPos_t;
 
-struct WallaNodeInfo {
-    WallaPos pos;
+typedef struct WallaNodeInfo {
+    WallaPos_t pos;
     long epoch_start;
     long epoch_end;
     double average;
     double stdev;
-}
+} WallaNodeInfo_t;
 
 typedef struct WallaEntry {
     long epoch;
     double value;
 } WallaEntry_t;
 
-struct WallaDb;
+typedef struct WallaDb WallaDb_t;
 
-enum WALLA_STATUS
+typedef enum
 {
     WALLA_SUCCESS,
     WALLA_OOPS,
     WALLA_BYE,
     WALLA_BAD_FORMAT,
-    WALLA_NOT_IMPLEMENTED,
-};
+    WALLA_NOT_IMPLEMENTED
+} WALLA_STATUS;
 
 /* 
- * Create a walladb server
+ * Create a WallaDb_t server
  *    - If the file does not exist, the file will be created
  *      with default parameters
  *    - If the file does exist, the server processes will be
  *      restarted
  */ 
-WallaDb *WallaDbCreateServer(char *filename);
+WallaDb_t *WallaDbCreateServer(char *filename);
 
 /* 
- * Shutdown walladb server and dealloc all data
+ * Shutdown WallaDb_t server and dealloc all data
  */ 
-WALLA_STATUS WallaDbShutdownServer(WallaDb *db);
+WALLA_STATUS WallaDbShutdownServer(WallaDb_t *db);
 
 /* 
  * Connect to the database
  */ 
-WallaDb *WallaDbConnect(char *filename);
+WallaDb_t *WallaDbConnect(char *filename);
 
 /* 
  * Disconnect from database.
@@ -75,23 +75,23 @@ WallaDb *WallaDbConnect(char *filename);
  *      data can be lost - how do I deal with this?
  * Deallocs db handle
  */ 
-WALLA_STATUS WallaDbDisconnect(WallaDb *db);
+WALLA_STATUS WallaDbDisconnect(WallaDb_t *db);
 
 /* 
  * Creates a db and thread workers
  */ 
-WallaDb *WallaDbCreateDb(char *filename);
+WallaDb_t *WallaDbCreateDb(char *filename);
 
 /* 
  * Writes magic to new database
  */ 
-WALLA_STATUS WallaDbWriteMagic(WallaDb *db);
+WALLA_STATUS WallaDbWriteMagic(WallaDb_t *db);
 
 /* 
  * Sets universal buffer length
  * Recorded data is multiplied by scale_factor for each layer
  */ 
-WALLA_STATUS WallaDbSetBufLen(WallaDb *db, long length, long scale_factor);
+WALLA_STATUS WallaDbSetBufLen(WallaDb_t *db, long length, long scale_factor);
 
 /* 
  * Sets root node
@@ -99,12 +99,12 @@ WALLA_STATUS WallaDbSetBufLen(WallaDb *db, long length, long scale_factor);
  *  as a singly linked list
  * Sets up pointer to incoming sensor data buffer area
  */ 
-WALLA_STATUS WallaDbSetupMemory(WallaDb *db);
+WALLA_STATUS WallaDbSetupMemory(WallaDb_t *db);
 
 /* 
  * Allows sensors to submit data
  */ 
-WALLA_STATUS WallaDbSubmitEntry(WallaDb *db, WallaPos *pos, long epoch, double data);
+WALLA_STATUS WallaDbSubmitEntry(WallaDb_t *db, WallaPos_t *pos, long epoch, double data);
 
 /* 
  * Queries the db and returns a json object
@@ -120,39 +120,49 @@ WALLA_STATUS WallaDbSubmitEntry(WallaDb *db, WallaPos *pos, long epoch, double d
  *     "std" : 13.32459
  *  }
  */ 
-char *WallaDbQuery(WallaDb *db, char *query);
+char *WallaDbQuery(WallaDb_t *db, char *query);
 
 /* 
- * Turns WallaEntry into a json string
+ * Create a walla entry
  */
-char *WallaEntryToJson(WallaEntry *walla_entry);
+WallaEntry_t *WallaEntryCreate(long epoch, double value);
+
+/*
+ * Destroy a walla entry
+ */
+void WallaEntryDestroy(WallaEntry_t *walla_entry);
+
+/* 
+ * Turns WallaEntry_t into a json string
+ */
+char *WallaEntryToJson(WallaEntry_t *walla_entry);
 
 /* 
  * Turns WallaNodeInfo into a json string
  */
-char *WallaNodeInfoToJson(WallaEntry *walla_entry);
+char *WallaNodeInfoToJson(WallaEntry_t *walla_entry);
 
 /* 
- * Get raw WallaEntry struct by point
+ * Get raw WallaEntry_t struct by point
  * May retrieve closest point
  * 
  */ 
-WallaEntry *WallaDbQueryInfoByPoint(WallaDb *db, WallaPos *pos);
+WallaEntry_t *WallaDbQueryInfoByPoint(WallaDb_t *db, WallaPos_t *pos);
 
 /* 
- * Get closest WallaEntry struct by time
+ * Get closest WallaEntry_t struct by time
  * 
  */ 
-WallaEntry *WallaDbQueryInfoByPointAndTime(WallaDb *db, WallaPos *pos, long epoch);
+WallaEntry_t *WallaDbQueryInfoByPointAndTime(WallaDb_t *db, WallaPos_t *pos, long epoch);
 
 /* 
  * Get stddev by point
  */ 
-double WallaDbQueryStdDevByPoint(WallaDb *db, WallaPos *pos);
+double WallaDbQueryStdDevByPoint(WallaDb_t *db, WallaPos_t *pos);
 
 /* 
  * Get closest stddev by time and position
  */ 
-WallaEntry *WallaDbQueryStdDevByPointAndTime(WallaDb *db, WallaPos *pos, long epoch);
+WallaEntry_t *WallaDbQueryStdDevByPointAndTime(WallaDb_t *db, WallaPos_t *pos, long epoch);
 
 #endif /* __WALLA_DB_H__ */

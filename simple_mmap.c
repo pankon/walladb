@@ -11,7 +11,6 @@
 ***************************************/
 #include <stdio.h>  /* fprintf, stderr, fopen, FILE  */
 #include <stdlib.h> /* malloc, free     */
-#include <string.h> /* strcmp           */
 #include <fcntl.h>  /* open             */
 #include <unistd.h> /* close            */
 #include <sys/mman.h>   /* mmap, munmap */
