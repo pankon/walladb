@@ -17,7 +17,7 @@
 
 #include <stdio.h>  /* printf */
 #include <stdlib.h> /* free */
-#include "walla_db.h"
+#include "walla_entry.h"
 
 int main(int argc, char **argv)
 {

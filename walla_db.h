@@ -18,6 +18,8 @@
 #ifndef __WALLA_DB_H__
 #define __WALLA_DB_H__
 
+#include "walla_entry.h"
+
 typedef struct WallaPos {
     long x;
     long y;
@@ -33,11 +35,6 @@ typedef struct WallaNodeInfo {
     double min;
     double stdev;
 } WallaNodeInfo_t;
-
-typedef struct WallaEntry {
-    long epoch;
-    double value;
-} WallaEntry_t;
 
 typedef struct WallaDb WallaDb_t;
 
@@ -123,21 +120,6 @@ WALLA_STATUS WallaDbSubmitEntry(WallaDb_t *db, WallaPos_t *pos, long epoch, doub
  *  }
  */ 
 char *WallaDbQuery(WallaDb_t *db, char *query);
-
-/* 
- * Create a walla entry
- */
-WallaEntry_t *WallaEntryCreate(long epoch, double value);
-
-/*
- * Destroy a walla entry
- */
-void WallaEntryDestroy(WallaEntry_t *walla_entry);
-
-/* 
- * Turns WallaEntry_t into a json string
- */
-char *WallaEntryToJson(WallaEntry_t *walla_entry);
 
 /* 
  * Turns WallaNodeInfo into a json string
