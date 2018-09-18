@@ -11,6 +11,10 @@
  * Tue Sep 17 09:21:00 2018
 ***************************************/
 
+#include <stdio.h>
+
+#include "json.h"
+
 typedef struct simple_json 
 {
 } json_t;
@@ -20,12 +24,6 @@ typedef struct simple_json
  */
 char *GetJsonString(json_t *json)
 {
-	int total_length = 0;
-	int i = 0;
-	for (i = 0; i < json->length; ++i)
-	{
-		PrepareJsonSegment(json->segment[i], &total_length);
-	}
-
-	return (NULL);
+    /* currently unused */
+    return (NULL);
 }

@@ -19,20 +19,8 @@
 #include <stdlib.h> /* malloc, free         */
 
 #include "json.h"
+#include "walla_entry.h"
 #include "walla_db.h"
-
-typedef struct WallaNode {
-    union {
-        long depth;
-        long next_free;
-    } meta;
-    WallaNodeInfo_t info;
-    struct WallaNode *parent;
-    struct WallaNode **children;
-    long n_entries;
-    WallaEntry_t *circbuf_head;
-    WallaEntry_t *circbuf_tail;
-} WallaNode_t;
 
 typedef struct WallaServer {
     int stub;

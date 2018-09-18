@@ -18,34 +18,11 @@
 #ifndef __WALLA_DB_H__
 #define __WALLA_DB_H__
 
+#include "walla_status.h"
+#include "walla_node.h"
 #include "walla_entry.h"
 
-typedef struct WallaPos {
-    long x;
-    long y;
-    long z;
-} WallaPos_t;
-
-typedef struct WallaNodeInfo {
-    WallaPos_t pos;
-    long epoch_start;
-    long epoch_end;
-    double average;
-    double max;
-    double min;
-    double stdev;
-} WallaNodeInfo_t;
-
 typedef struct WallaDb WallaDb_t;
-
-typedef enum
-{
-    WALLA_SUCCESS,
-    WALLA_OOPS,
-    WALLA_BYE,
-    WALLA_BAD_FORMAT,
-    WALLA_NOT_IMPLEMENTED
-} WALLA_STATUS;
 
 /* 
  * Create a WallaDb_t server
