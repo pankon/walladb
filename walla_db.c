@@ -20,6 +20,8 @@
 
 #include "walla_db.h"
 
+#define FLOAT_OUTPUT "%10.10f"
+
 typedef struct WallaNode {
     union {
         long depth;
@@ -164,10 +166,30 @@ char *WallaDbQuery(WallaDb_t *db, char *query)
 
 /* 
  * Turns WallaEntry_t into a json string
+ * returns string: { epoch : epoch_val, value: double_value }
  */
 char *WallaEntryToJson(WallaEntry_t *walla_entry)
 {
-    return (NULL);
+    static char *walla_entry_to_json = "{\"epoch\": %lu,"
+           " \"value\": " FLOAT_OUTPUT "}";
+    char *json_string = NULL;
+    int len = -1;
+
+    if (walla_entry == NULL)
+    {
+        return null_json;
+    }
+
+    len = asprintf(
+        &json_string, walla_entry_to_json, 
+        walla_entry->epoch, walla_entry->value
+    );
+    if (-1 == len)
+    {
+        return (NULL);
+    }
+    
+    return json_string;
 }
 
 WallaEntry_t *WallaEntryCreate(long epoch, double value)
@@ -193,20 +215,42 @@ void WallaEntryDestroy(WallaEntry_t *walla_entry)
 
 /* 
  * Turns WallaNodeInfo into a json string
- * returns string: { epoch : epoch_val, value: double_value }
+ * {"(x, y, z, t_start, t_end)": {
+ *     "avg" : 0.324232
+ *     "max" : 324.1232
+ *     "min" : 0.010230
+ *     "std" : 13.32459
+ *  } }
  */
-char *WallaNodeInfoToJson(WallaEntry_t *walla_entry)
+char *WallaNodeInfoToJson(WallaNodeInfo_t *walla_node_info)
 {
-    static char *walla_node_to_json = "{ epoch = %lu, value = %10.10f }";
+    static char *walla_node_info_to_json = 
+        "{\"(%lu, %lu, %lu, %lu, %lu)\":"
+                "{\"avg\":"FLOAT_OUTPUT","
+                " \"max\":"FLOAT_OUTPUT","
+                " \"min\":"FLOAT_OUTPUT","
+                " \"std\":"FLOAT_OUTPUT","
+                "}"
+        "}";
     char *json_string = NULL;
     int len = -1;
 
-    if (walla_entry == NULL)
+    if (walla_node_info == NULL)
     {
         return null_json;
     }
-
-    len = asprintf(&json_string, walla_node_to_json, walla_entry->epoch, walla_entry->value);
+    
+    len = asprintf(
+        &json_string, walla_node_info_to_json, 
+        walla_node_info->pos.x,
+        walla_node_info->pos.x,
+        walla_node_info->pos.x,
+        walla_node_info->epoch_start,
+        walla_node_info->epoch_end,
+        walla_node_info->average,
+        walla_node_info->max,
+        walla_node_info->min,
+        walla_node_info->stdev);
     if (-1 == len)
     {
         return (NULL);

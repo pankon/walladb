@@ -29,6 +29,8 @@ typedef struct WallaNodeInfo {
     long epoch_start;
     long epoch_end;
     double average;
+    double max;
+    double min;
     double stdev;
 } WallaNodeInfo_t;
 
@@ -140,7 +142,7 @@ char *WallaEntryToJson(WallaEntry_t *walla_entry);
 /* 
  * Turns WallaNodeInfo into a json string
  */
-char *WallaNodeInfoToJson(WallaEntry_t *walla_entry);
+char *WallaNodeInfoToJson(WallaNodeInfo_t *walla_node_info);
 
 /* 
  * Get raw WallaEntry_t struct by point
