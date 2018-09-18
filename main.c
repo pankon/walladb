@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     
     walla_entry = WallaEntryCreate(1000, 0.2342);
     
-    buffer = WallaNodeInfoToJson(walla_entry);
+    buffer = WallaEntryToJson(walla_entry);
     printf("%s\n", buffer);
     free(buffer);
     
