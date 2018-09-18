@@ -15,6 +15,9 @@
  * Fri Sep 14 14:51:47 2018
 ***************************************/
 
+#include <stdio.h>  /* sprintf, asprintf    */
+#include <stdlib.h> /* malloc, free         */
+
 #include "walla_db.h"
 
 struct WallaNode {
@@ -51,6 +54,8 @@ struct WallaDb {
     };
 }
 
+static char *null_json = "{}";
+
 /* 
  * Create a walladb server
  *    - If the file does not exist, the file will be created
@@ -60,7 +65,7 @@ struct WallaDb {
  */ 
 WallaDb *WallaDbCreateServer(char *filename)
 {
-
+    return (NULL);
 }
 
 /* 
@@ -68,7 +73,7 @@ WallaDb *WallaDbCreateServer(char *filename)
  */ 
 WALLA_STATUS WallaDbShutdownServer(WallaDb *db)
 {
-
+    return (NULL);
 }
 
 /* 
@@ -76,7 +81,7 @@ WALLA_STATUS WallaDbShutdownServer(WallaDb *db)
  */ 
 WallaDb *WallaDbConnect(char *filename)
 {
-
+    return (NULL);
 }
 
 /* 
@@ -89,7 +94,7 @@ WallaDb *WallaDbConnect(char *filename)
  */ 
 WALLA_STATUS WallaDbDisconnect(WallaDb *db)
 {
-
+    return (NULL);
 }
 
 /* 
@@ -97,7 +102,7 @@ WALLA_STATUS WallaDbDisconnect(WallaDb *db)
  */ 
 WallaDb *WallaDbCreateDb(char *filename)
 {
-
+    return (NULL);
 }
 
 /* 
@@ -105,7 +110,7 @@ WallaDb *WallaDbCreateDb(char *filename)
  */ 
 WALLA_STATUS WallaDbWriteMagic(WallaDb *db)
 {
-
+    return (WALLA_NOT_IMPLEMENTED);   
 }
 
 /* 
@@ -114,7 +119,7 @@ WALLA_STATUS WallaDbWriteMagic(WallaDb *db)
  */ 
 WALLA_STATUS WallaDbSetBufLen(WallaDb *db, long length, long scale_factor)
 {
-
+    return (WALLA_NOT_IMPLEMENTED);
 }
 
 /* 
@@ -125,7 +130,7 @@ WALLA_STATUS WallaDbSetBufLen(WallaDb *db, long length, long scale_factor)
  */ 
 WALLA_STATUS WallaDbSetupMemory(WallaDb *db)
 {
-
+    return (WALLA_NOT_IMPLEMENTED);
 }
 
 /* 
@@ -133,7 +138,7 @@ WALLA_STATUS WallaDbSetupMemory(WallaDb *db)
  */ 
 WALLA_STATUS WallaDbSubmitEntry(WallaDb *db, WallaPos *pos, long epoch, double data)
 {
-
+    return (WALLA_NOT_IMPLEMENTED);
 }
 
 /* 
@@ -152,7 +157,60 @@ WALLA_STATUS WallaDbSubmitEntry(WallaDb *db, WallaPos *pos, long epoch, double d
  */ 
 char *WallaDbQuery(WallaDb *db, char *query)
 {
+    return (NULL);
+}
 
+/* 
+ * Turns WallaEntry into a json string
+ */
+char *WallaEntryToJson(WallaEntry *walla_entry)
+{
+    return (NULL);
+}
+
+WallaEntry_t *WallaEntryCreate(long epoch, double value)
+{
+    WallaEntry_t *walla_entry = NULL;
+
+    if (NULL == (walla_entry = malloc(sizeof(WallaEntry_t))))
+    {
+        return (NULL);
+    }
+
+    walla_entry->epoch = epoch;
+    wall_entry->value = value;
+
+    return walla_entry;
+}
+
+void WallaEntryDestroy(WallaEntry *walla_entry)
+{
+    free(walla_entry);
+    walla_entry = NULL;
+}
+
+/* 
+ * Turns WallaNodeInfo into a json string
+ * returns string: { epoch : epoch_val, value: double_value }
+ */
+char *WallaNodeInfoToJson(WallaEntry *walla_entry)
+{
+    static char *walla_node_to_json = "{ epoch = %lu, value = %10.10d }";
+    char *json_string = NULL;
+    int len = walla_node_to_json;
+
+    if (walla_entry == null)
+    {
+        return null_json;
+    }
+
+    len = asprintf(&json_string, walla_node_to_json, walla_entry->epoch, walla_entry->value);
+    if (-1 == value_len)
+    {
+        return (NULL);
+    }
+    
+    return json_string;
 }
 
 /* 
@@ -162,7 +220,7 @@ char *WallaDbQuery(WallaDb *db, char *query)
  */ 
 WallaEntry *WallaDbQueryInfoByPoint(WallaDb *db, WallaPos *pos)
 {
-
+    return (NULL);
 }
 
 /* 
@@ -171,7 +229,7 @@ WallaEntry *WallaDbQueryInfoByPoint(WallaDb *db, WallaPos *pos)
  */ 
 WallaEntry *WallaDbQueryInfoByPointAndTime(WallaDb *db, WallaPos *pos, long epoch)
 {
-
+    return (NULL);
 }
 
 /* 
@@ -179,7 +237,7 @@ WallaEntry *WallaDbQueryInfoByPointAndTime(WallaDb *db, WallaPos *pos, long epoc
  */ 
 double WallaDbQueryStdDevByPoint(WallaDb *db, WallaPos *pos)
 {
-
+    return (NULL);
 }
 
 /* 
@@ -187,5 +245,5 @@ double WallaDbQueryStdDevByPoint(WallaDb *db, WallaPos *pos)
  */ 
 WallaEntry *WallaDbQueryStdDevByPointAndTime(WallaDb *db, WallaPos *pos, long epoch)
 {
-
+    return (NULL);
 }

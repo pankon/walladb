@@ -32,10 +32,10 @@ struct WallaNodeInfo {
     double stdev;
 }
 
-struct WallaEntry {
+typedef struct WallaEntry {
     long epoch;
     double value;
-}
+} WallaEntry_t;
 
 struct WallaDb;
 
@@ -45,6 +45,7 @@ enum WALLA_STATUS
     WALLA_OOPS,
     WALLA_BYE,
     WALLA_BAD_FORMAT,
+    WALLA_NOT_IMPLEMENTED,
 };
 
 /* 
@@ -120,6 +121,16 @@ WALLA_STATUS WallaDbSubmitEntry(WallaDb *db, WallaPos *pos, long epoch, double d
  *  }
  */ 
 char *WallaDbQuery(WallaDb *db, char *query);
+
+/* 
+ * Turns WallaEntry into a json string
+ */
+char *WallaEntryToJson(WallaEntry *walla_entry);
+
+/* 
+ * Turns WallaNodeInfo into a json string
+ */
+char *WallaNodeInfoToJson(WallaEntry *walla_entry);
 
 /* 
  * Get raw WallaEntry struct by point
