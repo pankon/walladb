@@ -99,11 +99,6 @@ WALLA_STATUS WallaDbSubmitEntry(WallaDb_t *db, WallaPos_t *pos, long epoch, doub
 char *WallaDbQuery(WallaDb_t *db, char *query);
 
 /* 
- * Turns WallaNodeInfo into a json string
- */
-char *WallaNodeInfoToJson(WallaNodeInfo_t *walla_node_info);
-
-/* 
  * Get raw WallaEntry_t struct by point
  * May retrieve closest point
  * 

@@ -16,6 +16,9 @@
 #include "json.h"
 #include "walla_entry.h"
 
+/* 
+ * Create a walla entry
+ */
 WallaEntry_t *WallaEntryCreate(long epoch, double value)
 {
     WallaEntry_t *walla_entry = NULL;
@@ -25,14 +28,46 @@ WallaEntry_t *WallaEntryCreate(long epoch, double value)
         return (NULL);
     }
 
-    walla_entry->epoch = epoch;
+   	return (WallaEntryInit(walla_entry, epoch, value));
+}
+
+/* 
+ * Instantiate a walla entry on preallocated memory
+ */
+WallaEntry_t *WallaEntryInit(void *memory, long epoch, double value)
+{	
+	WallaEntry_t *walla_entry = NULL;
+
+	if (NULL == memory)
+	{
+		return (NULL);
+	}
+
+	walla_entry = (WallaEntry_t *)memory;
+
+	walla_entry->epoch = epoch;
     walla_entry->value = value;
 
-    return walla_entry;
+	return (walla_entry);
+}
+
+/* 
+ * Zero a walla entry on preallocated memory
+ */
+void WallaEntryZero(WallaEntry *walla_entry)
+{
+	if (NULL == walla_entry)
+	{
+		return;
+	}
+
+	walla_entry->epoch = 0;
+    walla_entry->value = 0;
 }
 
 void WallaEntryDestroy(WallaEntry_t *walla_entry)
 {
+	WallaEntryZero(walla_entry);
     free(walla_entry);
     walla_entry = NULL;
 }

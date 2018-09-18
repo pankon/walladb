@@ -13,7 +13,7 @@
 #define __WALLA_ENTRY_H__
 
 typedef struct WallaEntry {
-    long epoch;
+    unsigned long epoch;
     double value;
 } WallaEntry_t;
 
@@ -22,10 +22,20 @@ typedef struct WallaEntry {
  */
 WallaEntry_t *WallaEntryCreate(long epoch, double value);
 
+/* 
+ * Instantiate a walla entry on preallocated memory
+ */
+WallaEntry_t *WallaEntryInit(void *memory, long epoch, double value);
+
 /*
  * Destroy a walla entry
  */
 void WallaEntryDestroy(WallaEntry_t *walla_entry);
+
+/* 
+ * Zero a walla entry on preallocated memory
+ */
+void WallaEntryZero(WallaEntry *walla_entry);
 
 /* 
  * Turns WallaEntry_t into a json string
