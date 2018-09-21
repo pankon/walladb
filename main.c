@@ -83,10 +83,10 @@ void TestWallaNode()
     LogInfo("node info: %s", buffer);
     free(buffer);
 
-    TestWallaNodeUpdate(walla_node, walla_entry, 1001, 0.5);
-    TestWallaNodeUpdate(walla_node, walla_entry, 1001, 0.6);
-    TestWallaNodeUpdate(walla_node, walla_entry, 1001, 0.7);
-    TestWallaNodeUpdate(walla_node, walla_entry, 1001, -1.343);
+    TestWallaNodeUpdate(walla_node, walla_entry, 100, 0.5);
+    TestWallaNodeUpdate(walla_node, walla_entry, 1020, 0.6);
+    TestWallaNodeUpdate(walla_node, walla_entry, 1034, 0.7);
+    TestWallaNodeUpdate(walla_node, walla_entry, 1100, -1.343);
     
     WallaEntryDestroy(walla_entry);
     walla_entry = NULL;
