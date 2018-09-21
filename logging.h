@@ -1,18 +1,13 @@
 /***************************************
- * json.h
+ * logging.h
  * 
  * Walla Db
  * Pankonworks
  * Nathan Pankowsky
- * statics for json creation
+ * Logs to file
  * Tue Sep 17 09:21:00 2018
 ***************************************/
 
-#ifndef __JSON_H__
-#define __JSON_H__
-
-#define FLOAT_OUTPUT "%10.10f"
-
-char *JsonGetNull();
-
-#endif /* __JSON_H__ */
+void LogError(char *mesg, ...);
+void LogDebug(char *mesg, ...);
+void LogInfo(char *mesg, ...);

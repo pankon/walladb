@@ -15,6 +15,7 @@
 #define __WALLA_NODE_INFO_H__
 
 #include "walla_status.h"
+#include "walla_pos.h"
 #include "walla_entry.h"
 
 typedef struct WallaNodeInfo {
@@ -30,8 +31,11 @@ typedef struct WallaNodeInfo {
 WALLA_STATUS WallaNodeInfoUpdateWithEntry(
     WallaNodeInfo_t *walla_node_info, 
     WallaEntry_t *walla_entry,
-    long current_number_of_entries
+    long *current_number_of_entries
 );
+
+WALLA_STATUS WallaNodeInfoInit(WallaNodeInfo_t *walla_node_info, WallaPos_t *pos);
+void WallaNodeInfoZero(WallaNodeInfo_t *walla_node_info);
 
 /* 
  * Turns WallaNodeInfo into a json string

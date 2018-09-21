@@ -54,7 +54,7 @@ WallaEntry_t *WallaEntryInit(void *memory, long epoch, double value)
 /* 
  * Zero a walla entry on preallocated memory
  */
-void WallaEntryZero(WallaEntry *walla_entry)
+void WallaEntryZero(WallaEntry_t *walla_entry)
 {
 	if (NULL == walla_entry)
 	{
@@ -85,7 +85,7 @@ char *WallaEntryToJson(WallaEntry_t *walla_entry)
 
     if (walla_entry == NULL)
     {
-        return null_json;
+        return JsonGetNull();
     }
 
     len = asprintf(
@@ -97,5 +97,5 @@ char *WallaEntryToJson(WallaEntry_t *walla_entry)
         return (NULL);
     }
     
-    return json_string;
+    return (json_string);
 }

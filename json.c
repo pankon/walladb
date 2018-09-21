@@ -12,18 +12,23 @@
 ***************************************/
 
 #include <stdio.h>
+#include <stdlib.h> /* malloc, free 	*/
 
 #include "json.h"
 
-typedef struct simple_json 
+char *JsonGetNull()
 {
-} json_t;
+	static char *null_json = "{}";
+	char *json = NULL;
 
-/*
- * Builds Json to string
- */
-char *GetJsonString(json_t *json)
-{
-    /* currently unused */
-    return (NULL);
+	if (NULL == (json = malloc(3)))
+	{
+		return (NULL);
+	}
+
+	*json = *null_json;
+	*(json + 1) = *(null_json + 1);
+	*(json + 2) = 0;
+
+	return (json);
 }

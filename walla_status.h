@@ -23,4 +23,6 @@ typedef enum
     WALLA_YOU_FORGOT_TO_PASS_ANYTHING,
 } WALLA_STATUS;
 
+char *WallaStatusToString(WALLA_STATUS status);
+
 #endif /* __WALLA_STATUS_H__ */

@@ -35,7 +35,7 @@ void WallaEntryDestroy(WallaEntry_t *walla_entry);
 /* 
  * Zero a walla entry on preallocated memory
  */
-void WallaEntryZero(WallaEntry *walla_entry);
+void WallaEntryZero(WallaEntry_t *walla_entry);
 
 /* 
  * Turns WallaEntry_t into a json string

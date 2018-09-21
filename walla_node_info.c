@@ -11,13 +11,18 @@
  * Fri Sep 14 14:51:47 2018
  ***************************************/
 
+#define _GNU_SOURCE
+#include <stdio.h>  /* sprintf, asprintf    */
+
+#include "json.h"
+#include "walla_pos.h"
 #include "walla_node_info.h"
 
-void WallaNodeInfoUpdateTime(WallaNodeInfo_t *walla_node_info, unsigned long epoch)
+WALLA_STATUS WallaNodeInfoUpdateTime(WallaNodeInfo_t *walla_node_info, unsigned long epoch)
 {
     if (NULL == walla_node_info)
     {
-        return;
+        return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
     }
 
     if (walla_node_info->epoch_start > epoch)
@@ -28,13 +33,16 @@ void WallaNodeInfoUpdateTime(WallaNodeInfo_t *walla_node_info, unsigned long epo
     {
         walla_node_info->epoch_end = epoch;
     }
+
+    return (WALLA_SUCCESS);
 }
 
 double WallaNodeInfoGetNewAverage(double average, double value, long current_number_of_entries)
 {
     /* https://math.stackexchange.com/questions/22348/how-to-add-and-subtract-values-from-an-average */
+    /*(average + ((value - average) / (double)current_number_of_entries));*/
 
-    return (average + ((value - average) / (double)current_number_of_entries));
+    return (((average * current_number_of_entries) + value) / (current_number_of_entries + 1));  
 }
 
 double WallaNodeInfoGetNewStdev(double stddev, double value, long current_number_of_entries)
@@ -46,9 +54,13 @@ double WallaNodeInfoGetNewStdev(double stddev, double value, long current_number
     return -1;
 }
 
-void WallaNodeInfoUpdateWithValue(WallaNodeInfo_t *walla_node_info, double value, long current_number_of_entries)
+WALLA_STATUS WallaNodeInfoUpdateWithValue(WallaNodeInfo_t *walla_node_info, double value, long *current_number_of_entries)
 {
-   
+    if (NULL == current_number_of_entries)
+    {
+        return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
+    }
+
     if (walla_node_info->max < value)
     {
         walla_node_info->max = value;
@@ -58,25 +70,70 @@ void WallaNodeInfoUpdateWithValue(WallaNodeInfo_t *walla_node_info, double value
         walla_node_info->min = value;
     }
 
-    walla_node_info->average = WallaNodeInfoGetNewAverage(walla_node_info->average, value);
-    walla_node_info->stdev = WallaNodeInfoGetNewStdev(walla_node_info->stdev, value);
+    walla_node_info->average = WallaNodeInfoGetNewAverage(walla_node_info->average, value, *current_number_of_entries);
+    walla_node_info->stdev = WallaNodeInfoGetNewStdev(walla_node_info->stdev, value, *current_number_of_entries);
+
+    ++(*current_number_of_entries);
+
+    return (WALLA_SUCCESS);
 }
 
 WALLA_STATUS WallaNodeInfoUpdateWithEntry(
     WallaNodeInfo_t *walla_node_info, 
     WallaEntry_t *walla_entry,
-    long current_number_of_entries
+    long *current_number_of_entries
 )
 {
+    WALLA_STATUS status = WALLA_SUCCESS;
+
     if (NULL == walla_node_info || NULL == walla_entry)
     {
         return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
     }
 
-    WallaNodeInfoUpdateTime(walla_node_info, walla_entry->epoch);
-    WallaNodeInfoUpdateWithValue(walla_node_info, walla_entry->value);
+    status = WallaNodeInfoUpdateTime(walla_node_info, walla_entry->epoch);
+    if (status != WALLA_SUCCESS)
+    {
+        return (status);
+    }
+
+    status = WallaNodeInfoUpdateWithValue(walla_node_info, walla_entry->value, current_number_of_entries);
+
+    return (status);
+}
+
+WALLA_STATUS WallaNodeInfoInit(WallaNodeInfo_t *walla_node_info, WallaPos_t *pos)
+{
+    if (NULL == walla_node_info || NULL == pos)
+    {
+        return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
+    }
+
+    walla_node_info->pos = *pos;
+    walla_node_info->epoch_start = 0;
+    walla_node_info->epoch_end = 0;
+    walla_node_info->average = 0;
+    walla_node_info->max = 0;
+    walla_node_info->min = 0;
+    walla_node_info->stdev = 0;
 
     return (WALLA_SUCCESS);
+}
+
+void WallaNodeInfoZero(WallaNodeInfo_t *walla_node_info)
+{
+    if (NULL == walla_node_info)
+    {
+        return;
+    }
+
+    WallaPosZero(&(walla_node_info->pos));
+    walla_node_info->epoch_start = 0;
+    walla_node_info->epoch_end = 0;
+    walla_node_info->average = 0;
+    walla_node_info->max = 0;
+    walla_node_info->min = 0;
+    walla_node_info->stdev = 0;
 }
 
 /* 
@@ -95,7 +152,7 @@ char *WallaNodeInfoToJson(WallaNodeInfo_t *walla_node_info)
                 "{\"avg\":"FLOAT_OUTPUT","
                 " \"max\":"FLOAT_OUTPUT","
                 " \"min\":"FLOAT_OUTPUT","
-                " \"std\":"FLOAT_OUTPUT","
+                " \"std\":"FLOAT_OUTPUT
                 "}"
         "}";
     char *json_string = NULL;
@@ -103,23 +160,25 @@ char *WallaNodeInfoToJson(WallaNodeInfo_t *walla_node_info)
 
     if (walla_node_info == NULL)
     {
-        return null_json;
+        return (JsonGetNull());
     }
-    
+
     len = asprintf(
-        &json_string, walla_node_info_to_json, 
+        &json_string, 
+        walla_node_info_to_json, 
         walla_node_info->pos.x,
-        walla_node_info->pos.x,
-        walla_node_info->pos.x,
+        walla_node_info->pos.y,
+        walla_node_info->pos.z,
         walla_node_info->epoch_start,
         walla_node_info->epoch_end,
         walla_node_info->average,
         walla_node_info->max,
         walla_node_info->min,
-        walla_node_info->stdev);
+        walla_node_info->stdev
+        );
     if (-1 == len)
     {
-        return (NULL);
+        return (JsonGetNull());
     }
     
     return (json_string);

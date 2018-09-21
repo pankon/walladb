@@ -32,22 +32,27 @@ typedef struct WallaNode {
 /*
  * Alloc's and creates a walla node
  */
-WallaNode_t *WallaNodeCreate(WallaNode_t *parent, int depth, int n_entries, WallaPos_t pos);
+WallaNode_t *WallaNodeCreate(WallaNode_t *parent, int depth, int n_entries, WallaPos_t *pos);
 
 /*
  * Creates a walla node on existing memory
  * zeroes existing memory
  * Inits WallaNodeInfo_t
  */
-WallaNode_t *WallaNodeInit(void *memory, WallaNode_t *parent, int depth, int n_entries, WallaPos_t pos);
+WallaNode_t *WallaNodeInit(void *memory, WallaNode_t *parent, int depth, int n_entries, WallaPos_t *pos);
 
 void WallaNodeDestroy(WallaNode_t *walla_node);
 void WallaNodeZero(WallaNode_t *walla_node);
 void WallaNodeDealloc(WallaNode_t *walla_node, int next_free);
 
+WALLA_STATUS WallaNodeUpdateWithEntry(
+    WallaNode_t *walla_node, 
+    WallaEntry_t *walla_entry
+);
+
 /* 
  * Turns WallaNode into a json string
  */
-char *WallaNodeToJson(WallaNode_t walla_node);
+char *WallaNodeToJson(WallaNode_t *walla_node);
 
 #endif /* __WALLA_NODE_H__ */
