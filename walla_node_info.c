@@ -217,7 +217,7 @@ char *WallaNodeInfoToJson(WallaNodeInfo_t *walla_node_info)
         );
     if (-1 == len)
     {
-        LogInfo("[WallaNodeInfoToJson] : asprintf failed");
+        LogError("[WallaNodeInfoToJson] : asprintf failed");
         return (JsonGetNull());
     }
     
