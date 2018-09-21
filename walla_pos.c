@@ -12,6 +12,7 @@
 
 #include <stdio.h> 	/* NULL 				*/
 #include <stdlib.h> /* malloc, free         */
+#include "logging.h"
 #include "walla_pos.h"
 
 WallaPos_t *WallaPosCreate(long x, long y, long z)
@@ -20,6 +21,7 @@ WallaPos_t *WallaPosCreate(long x, long y, long z)
 
 	if (NULL == (walla_pos = malloc(sizeof(WallaPos_t))))
 	{
+		LogError("[WallaPosCreate] malloc failed");
 		return (NULL);
 	}
 
@@ -32,6 +34,7 @@ WallaPos_t *WallaPosInit(void *memory, long x, long y, long z)
 
 	if (NULL == memory)
 	{
+		LogError("[WallaPosCreate] null memory passed");
 		return (NULL);
 	}
 
