@@ -13,19 +13,28 @@
 
 #define _GNU_SOURCE
 #include <stdio.h>  /* sprintf, asprintf    */
+#include <math.h>   /* sqrt */
 
+#include "logging.h"
 #include "json.h"
 #include "walla_pos.h"
 #include "walla_node_info.h"
 
-WALLA_STATUS WallaNodeInfoUpdateTime(WallaNodeInfo_t *walla_node_info, unsigned long epoch)
+WALLA_STATUS WallaNodeInfoUpdateTime(WallaNodeInfo_t *walla_node_info, 
+                                     unsigned long epoch)
 {
     if (NULL == walla_node_info)
     {
+        LogError("[WallaNodeInfoUpdateTime : no walla_node_info passed");
         return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
     }
 
-    if (walla_node_info->epoch_start > epoch)
+    if (0 == walla_node_info->epoch_start && 0 == walla_node_info->epoch_end)
+    {
+        walla_node_info->epoch_start = epoch;
+        walla_node_info->epoch_end = epoch;
+    }
+    else if (walla_node_info->epoch_start > epoch)
     {
         walla_node_info->epoch_start = epoch;   
     }
@@ -37,31 +46,51 @@ WALLA_STATUS WallaNodeInfoUpdateTime(WallaNodeInfo_t *walla_node_info, unsigned 
     return (WALLA_SUCCESS);
 }
 
-double WallaNodeInfoGetNewAverage(double average, double value, long current_number_of_entries)
+double WallaNodeInfoGetNewAverage(double average, double value, 
+                                  long current_number_of_entries)
 {
-    /* https://math.stackexchange.com/questions/22348/how-to-add-and-subtract-values-from-an-average */
-    /*(average + ((value - average) / (double)current_number_of_entries));*/
-
-    return (((average * current_number_of_entries) + value) / (current_number_of_entries + 1));  
+    return (((average * (current_number_of_entries - 1)) + value) 
+            / current_number_of_entries);  
 }
 
-double WallaNodeInfoGetNewStdev(double stddev, double value, long current_number_of_entries)
+double WallaNodeInfoGetNewStdev(double stddev, double old_mean, 
+                                double new_mean, double value, 
+                                long current_number_of_entries)
 {
-    /* https://math.stackexchange.com/questions/775391/can-i-calculate-the-new-standard-deviation-when-adding-a-value-without-knowing-t */
+    /* Sources for modified Welford's method:
+     * https://math.stackexchange.com/questions/775391/can-i-calculate-the-new-standard-deviation-when-adding-a-value-without-knowing-t
+     * http://jonisalonen.com/2013/deriving-welfords-method-for-computing-variance/
+     * this method ends up lagging one behind the actual value 
+     */
 
-    /* TODO */
+    double lhs = (value - new_mean) * (value - old_mean);
+    double numerator = ((current_number_of_entries - 1) * (stddev * stddev)) + lhs;
+    double new_stddev = sqrt(numerator / (current_number_of_entries));
 
-    return -1;
+    LogVerbose("{\"lhs\" = %f, \"numerator\": %f, \"new_stddev\" : %f}", 
+        lhs, numerator, new_stddev);
+
+    return new_stddev;
 }
 
-WALLA_STATUS WallaNodeInfoUpdateWithValue(WallaNodeInfo_t *walla_node_info, double value, long *current_number_of_entries)
+WALLA_STATUS WallaNodeInfoUpdateWithValue(WallaNodeInfo_t *walla_node_info, 
+                                          double value, long *current_number_of_entries)
 {
-    if (NULL == current_number_of_entries)
+    double old_mean = 0;
+
+    if (NULL == current_number_of_entries || NULL == walla_node_info)
     {
+        LogError("[WallaNodeInfoUpdateWithValue : no current_number_of_entries"
+                 "or walla_node_info passed");
         return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
     }
 
-    if (walla_node_info->max < value)
+    if (0 == walla_node_info->max && 0 == walla_node_info->min)
+    {
+        walla_node_info->max = value;
+        walla_node_info->min = value;
+    }
+    else if (walla_node_info->max < value)
     {
         walla_node_info->max = value;
     }
@@ -70,10 +99,17 @@ WALLA_STATUS WallaNodeInfoUpdateWithValue(WallaNodeInfo_t *walla_node_info, doub
         walla_node_info->min = value;
     }
 
-    walla_node_info->average = WallaNodeInfoGetNewAverage(walla_node_info->average, value, *current_number_of_entries);
-    walla_node_info->stdev = WallaNodeInfoGetNewStdev(walla_node_info->stdev, value, *current_number_of_entries);
-
     ++(*current_number_of_entries);
+    old_mean = walla_node_info->average;
+
+    walla_node_info->average = WallaNodeInfoGetNewAverage(
+        walla_node_info->average, 
+        value, *current_number_of_entries);
+
+    walla_node_info->stdev = WallaNodeInfoGetNewStdev(
+        walla_node_info->stdev, 
+        walla_node_info->average, old_mean, 
+        value, *current_number_of_entries);
 
     return (WALLA_SUCCESS);
 }
@@ -97,7 +133,8 @@ WALLA_STATUS WallaNodeInfoUpdateWithEntry(
         return (status);
     }
 
-    status = WallaNodeInfoUpdateWithValue(walla_node_info, walla_entry->value, current_number_of_entries);
+    status = WallaNodeInfoUpdateWithValue(walla_node_info, walla_entry->value, 
+                                          current_number_of_entries);
 
     return (status);
 }
@@ -106,6 +143,7 @@ WALLA_STATUS WallaNodeInfoInit(WallaNodeInfo_t *walla_node_info, WallaPos_t *pos
 {
     if (NULL == walla_node_info || NULL == pos)
     {
+        LogError("[WallaNodeInfoInit] : No walla_node_info or walla_pos passed");
         return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
     }
 
@@ -160,6 +198,7 @@ char *WallaNodeInfoToJson(WallaNodeInfo_t *walla_node_info)
 
     if (walla_node_info == NULL)
     {
+        LogInfo("[WallaNodeInfoToJson] : walla_node_info is null");
         return (JsonGetNull());
     }
 
@@ -178,6 +217,7 @@ char *WallaNodeInfoToJson(WallaNodeInfo_t *walla_node_info)
         );
     if (-1 == len)
     {
+        LogInfo("[WallaNodeInfoToJson] : asprintf failed");
         return (JsonGetNull());
     }
     
