@@ -9,5 +9,6 @@
 ***************************************/
 
 void LogError(char *mesg, ...);
-void LogDebug(char *mesg, ...);
 void LogInfo(char *mesg, ...);
+void LogDebug(char *mesg, ...);
+void LogVerbose(char *mesg, ...);

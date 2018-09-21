@@ -17,11 +17,12 @@
 void Log(char *level, char *mesg, va_list args)
 {
     static char *time_format = "%D %T";
-    time_t current_time;
-    struct tm result;
+    
+    time_t current_time = {0};
+    struct tm result = {0};
     char stime[32];
     int len = 0;
-    pthread_t pid;
+    pthread_t pid = NULL;
 
     pid = pthread_self();
 
@@ -48,6 +49,7 @@ void LogError(char *mesg, ...)
 
 void LogDebug(char *mesg, ...)
 {
+#ifdef LOG_DEBUG
     static char *debug = "[debug (%s:%lx)] ";
 
     va_list args;
@@ -56,10 +58,12 @@ void LogDebug(char *mesg, ...)
     Log(debug, mesg, args);
 
     va_end(args);
+#endif
 }
 
 void LogInfo(char *mesg, ...)
 {
+#ifdef LOG_INFO
     static char *info = "[info  (%s:%lx)] ";
 
     va_list args;
@@ -68,4 +72,19 @@ void LogInfo(char *mesg, ...)
     Log(info, mesg, args);
 
     va_end(args);
+#endif
+}
+
+void LogVerbose(char *mesg, ...)
+{
+#ifdef LOG_VERBOSE
+    static char *info = "[verbose(%s:%lx)] ";
+
+    va_list args;
+    va_start(args, mesg);
+
+    Log(info, mesg, args);
+
+    va_end(args);
+#endif
 }
