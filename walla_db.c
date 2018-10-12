@@ -17,9 +17,13 @@
 #define _GNU_SOURCE
 #include <stdio.h>  /* sprintf, asprintf    */
 #include <stdlib.h> /* malloc, free         */
+#include <string.h> /* strlen, strcpy       */
 
 #include "json.h"
+#include "logging.h"
+#include "simple_mmap.h"
 #include "walla_entry.h"
+#include "walla_node.h"
 #include "walla_db.h"
 
 typedef struct WallaServer {
@@ -32,8 +36,9 @@ typedef struct WallaClient {
 
 struct WallaDb {
     char *filename;
-    char *data;
-    long pos;
+    FILE *fp;           /* initial stage */
+    mmap_t *mmap;
+    long length;
     long scale_factor;
     WallaNode_t root;
     long free_list_start;
@@ -44,6 +49,80 @@ struct WallaDb {
         WallaClient_t *client;
     } connection;
 };
+
+WallaDb_t *WallaDbCreate(char *filename, long length, long scale_factor, int is_server, int n_layers)
+{
+    WallaDb_t *walla_db = NULL;
+    WallaPos_t *pos = NULL;
+    size_t filename_len = 0;
+    char *filename_copy = NULL;
+
+    if (NULL == filename)
+    {
+        LogError("[WallaDbCreate] no filename passed");
+        return (NULL);
+    }
+
+    filename_len = strlen(filename);
+    if (NULL == (filename_copy = malloc(filename_len)))
+    {
+        LogError("[WallaDbCreate] error in malloc of str");
+        return (NULL);
+    }
+
+    if (NULL == (pos = WallaPosCreate(0, 0, 0)))
+    {
+        LogError("[WallaDbCreate] WallaPosCreate error");
+        return (NULL);
+    }
+
+    strcpy(filename_copy, filename);
+
+    if (NULL == (walla_db = malloc(sizeof(WallaDb_t))))
+    {
+        LogError("[WallaDbCreate] error in malloc");
+        return (NULL);
+    }
+
+    walla_db->filename = filename_copy;
+    walla_db->fp = NULL;
+    walla_db->mmap = NULL;
+    walla_db->length = length;
+    walla_db->scale_factor = scale_factor;
+    walla_db->free_list_start = 0;
+    
+    WallaNodeInit(&(walla_db->root), NULL, 0, length, pos);
+    WallaPosDestroy(pos);
+    pos = NULL;
+
+    walla_db->is_server = is_server;
+    walla_db->connection.server = NULL;
+
+    return (walla_db);
+}
+
+void WallaDbDestroy(WallaDb_t *walla_db)
+{
+    if (NULL == walla_db)
+    {
+        return;
+    }
+
+    free(walla_db->filename);
+    walla_db->filename = NULL;
+    
+    SimpleMmapPleaseDisposeOfThisCharArray(walla_db->mmap);
+    walla_db->mmap = NULL;
+    
+    fclose(walla_db->fp);
+    walla_db->fp = NULL;
+
+    /* TODO setup/teardown of client/server */
+    walla_db->connection.server = NULL;
+
+    free(walla_db);
+    walla_db = NULL;
+}
 
 /* 
  * Create a walladb server
@@ -89,9 +168,31 @@ WALLA_STATUS WallaDbDisconnect(WallaDb_t *db)
 /* 
  * Creates a db and thread workers
  */ 
-WallaDb_t *WallaDbCreateDb(char *filename)
+WallaDb_t *WallaDbCreateDb(char *filename, long length, long scale_factor)
 {
-    return (NULL);
+    FILE *fp = NULL;
+    WallaDb_t *walla_db = NULL;
+    WALLA_STATUS status = WALLA_SUCCESS;
+
+    if (NULL == (walla_db = WallaDbCreate(filename, length, scale_factor, WALLA_SERVER)))
+    {
+        LogError("[WallaDbCreateDb] error in db creation");
+        return (NULL);
+    }
+
+    walla_db->fp = fopen(filename, "w");
+
+    WallaDbWriteMagic(walla_db);
+    WallaDbSetBufLen(walla_db, length, scale_factor);
+
+    fwrite(&(walla_db->root), sizeof(walla_db->root), 1, walla_db->fp);
+
+    status = WallaDbSetupMemory(walla_db); /* TODO: check for success */
+
+    fclose(walla_db->fp);
+    walla_db->fp = NULL;
+
+    return (walla_db);
 }
 
 /* 
@@ -99,7 +200,22 @@ WallaDb_t *WallaDbCreateDb(char *filename)
  */ 
 WALLA_STATUS WallaDbWriteMagic(WallaDb_t *db)
 {
-    return (WALLA_NOT_IMPLEMENTED);   
+    if (NULL == db)
+    {
+        LogError("[WallaDbWriteMagic] you forgot to pass a db");
+        return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
+    }
+
+    if (NULL == db->fp)
+    {
+        LogError("[WallaDbWriteMagic] no file open");
+        return (WALLA_NO_FILE_OPENED);
+    }
+
+    fseek(db->fp, 0, SEEK_SET);
+    fputs(walla_magic, db->fp);
+
+    return (WALLA_SUCCESS);   
 }
 
 /* 
@@ -108,7 +224,29 @@ WALLA_STATUS WallaDbWriteMagic(WallaDb_t *db)
  */ 
 WALLA_STATUS WallaDbSetBufLen(WallaDb_t *db, long length, long scale_factor)
 {
-    return (WALLA_NOT_IMPLEMENTED);
+    if (NULL == db)
+    {
+        LogError("[WallaDbSetBufLen] you forgot to pass a db");
+        return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
+    }
+
+    if (NULL == db->fp)
+    {
+        LogError("[WallaDbSetBufLen] no file open");
+        return (WALLA_NO_FILE_OPENED);
+    }
+
+    db->length = length;
+    db->scale_factor = scale_factor;
+
+    /* print right after WALLA-DB magic */
+    fseek(db->fp, 8, SEEK_SET); 
+    fwrite(&length, sizeof(length), 1, db->fp);
+    fwrite(&scale_factor, sizeof(scale_factor), 1, db->fp);
+
+    /* TODO: resize existing buffers */
+
+    return (WALLA_SUCCESS);
 }
 
 /* 

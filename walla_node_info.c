@@ -25,12 +25,13 @@ WALLA_STATUS WallaNodeInfoUpdateTime(WallaNodeInfo_t *walla_node_info,
 {
     if (NULL == walla_node_info)
     {
-        LogError("[WallaNodeInfoUpdateTime : no walla_node_info passed");
+        LogError("[WallaNodeInfoUpdateTime] no walla_node_info passed");
         return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
     }
 
     if (0 == walla_node_info->epoch_start && 0 == walla_node_info->epoch_end)
     {
+        LogVerbose("[WallaNodeInfoUpdateTime] setting first node");
         walla_node_info->epoch_start = epoch;
         walla_node_info->epoch_end = epoch;
     }
@@ -87,6 +88,7 @@ WALLA_STATUS WallaNodeInfoUpdateWithValue(WallaNodeInfo_t *walla_node_info,
 
     if (0 == walla_node_info->max && 0 == walla_node_info->min)
     {
+        LogVerbose("[WallaNodeInfoUpdateWithValue] setting first node");
         walla_node_info->max = value;
         walla_node_info->min = value;
     }
@@ -143,7 +145,7 @@ WALLA_STATUS WallaNodeInfoInit(WallaNodeInfo_t *walla_node_info, WallaPos_t *pos
 {
     if (NULL == walla_node_info || NULL == pos)
     {
-        LogError("[WallaNodeInfoInit] : No walla_node_info or walla_pos passed");
+        LogError("[WallaNodeInfoInit] No walla_node_info or walla_pos passed");
         return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
     }
 
@@ -217,7 +219,7 @@ char *WallaNodeInfoToJson(WallaNodeInfo_t *walla_node_info)
         );
     if (-1 == len)
     {
-        LogError("[WallaNodeInfoToJson] : asprintf failed");
+        LogError("[WallaNodeInfoToJson] asprintf failed");
         return (JsonGetNull());
     }
     

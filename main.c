@@ -18,11 +18,13 @@
 #include <stdio.h>  /* printf */
 #include <stdlib.h> /* free */
 #include "logging.h"
+#include "walla_db.h"
 #include "walla_pos.h"
 #include "walla_entry.h"
 #include "walla_node_info.h"
 #include "walla_node.h"
 
+void TestBasicDb();
 void TestWallaEntry();
 void TestWallaNode();
 void TestWallaNodeUpdate(WallaNode_t *walla_node, WallaEntry_t *walla_entry, 
@@ -30,11 +32,21 @@ void TestWallaNodeUpdate(WallaNode_t *walla_node, WallaEntry_t *walla_entry,
 
 int main(int argc, char **argv)
 {
-    TestWallaNode();
+    TestBasicDb();
 
     return (0);
 }
 
+void TestBasicDb()
+{
+    char *filename = "test.db";
+    WallaDb_t *walla_db = NULL;
+
+    walla_db = WallaDbCreateDb(filename, 10, 2, 4);
+
+    WallaDbDestroy(walla_db);
+    walla_db = NULL;
+}
 
 void TestWallaEntry()
 {

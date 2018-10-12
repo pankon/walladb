@@ -22,7 +22,15 @@
 #include "walla_node.h"
 #include "walla_entry.h"
 
+#define WALLA_SERVER 1
+#define WALLA_CLIENT 0
+
+static char *walla_magic = "WALLA-DB";
+
 typedef struct WallaDb WallaDb_t;
+
+WallaDb_t *WallaDbCreate(char *filename, long length, long scale_factor, int is_server, int n_layers);
+void WallaDbDestroy(WallaDb_t *walla_db);
 
 /* 
  * Create a WallaDb_t server
@@ -56,7 +64,7 @@ WALLA_STATUS WallaDbDisconnect(WallaDb_t *db);
 /* 
  * Creates a db and thread workers
  */ 
-WallaDb_t *WallaDbCreateDb(char *filename);
+WallaDb_t *WallaDbCreateDb(char *filename, long length, long scale_factor, int n_layers);
 
 /* 
  * Writes magic to new database

@@ -17,6 +17,7 @@ typedef struct
 {
     char *data;
     int handle;
+    int mode;
     size_t size;
 } mmap_t;
 
@@ -31,5 +32,7 @@ mmap_t *SimpleMmapGetMeACharArray(char *filename);
 void SimpleMmapPleaseDisposeOfThisCharArray(
     mmap_t *mmapped_data
 );
+
+mmap_t *SimpleMmapGetWriteableFixedSizeFile(char *filename);
 
 #endif /* __SIMPLE_MMAP_H__ */

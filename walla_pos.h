@@ -24,4 +24,6 @@ WallaPos_t *WallaPosInit(void *memory, long x, long y, long z);
 void WallaPosZero(WallaPos_t *walla_pos);
 void WallaPosDestroy(WallaPos_t *walla_pos);
 
+WallaPos_t *WallaPosDistance(WallaPos_t *a, WallaPos_t *b);
+
 #endif /* __WALLA_POS_H__ */
