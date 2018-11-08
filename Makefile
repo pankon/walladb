@@ -1,7 +1,7 @@
 # from: http://make.mad-scientist.net/papers/advanced-auto-dependency-generation/
 # TODO: https://stackoverflow.com/questions/145270/calling-c-c-from-python
 CC = gcc
-CFLAGS=-DLOG_INFO -DLOG_ERROR -DLOG_DEBUG -Wpedantic -Werror -fPIC
+CFLAGS=-DLOG_INFO -DLOG_ERROR -DLOG_DEBUG -Wpedantic -Werror -fPIC -lm
 LIBS=
 SRC=logging.c $(wildcard walla_*.c) simple_mmap.c json.c
 TEST_MAIN=main.c
