@@ -127,6 +127,9 @@ WallaDb_t *WallaDbCreate(char *filename, long length, long scale_factor, int is_
 
     walla_db->is_server = is_server;
     walla_db->connection.server = NULL;
+    
+    LogInfo(log, "[WallaDbCreate] : created new db at: %s\n",
+            filename_copy);
 
     return (walla_db);
 }
