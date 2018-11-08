@@ -67,7 +67,7 @@ WallaDb_t *WallaDbCreate(char *filename, long length, long scale_factor, int is_
     }
 
     filename_len = strlen(filename);
-    if (NULL == (log_filename = malloc(filename_len + 4)))
+    if (NULL == (log_filename = malloc(filename_len + 5)))
     {
         LogError(LogStdErr(), "[WallaDbCreate] error in malloc"
                               " of log filename");
@@ -76,14 +76,19 @@ WallaDb_t *WallaDbCreate(char *filename, long length, long scale_factor, int is_
     strcpy(log_filename, filename);
     strcpy(log_filename + filename_len, ".log");
     
+    LogInfo(LogStdErr(), log_filename);
+    
     if (NULL == (log = LogCreate(log_filename)))
     {
         LogError(LogStdErr(), "[WallaDbCreate] LogCreate"
                               " error");
         return (NULL);
     }
+    
+    free(log_filename);
+    log_filename = NULL;
    
-    if (NULL == (filename_copy = malloc(filename_len)))
+    if (NULL == (filename_copy = malloc(filename_len + 1)))
     {
         LogError(log, "[WallaDbCreate] error in malloc of str");
         LogDestroy(log);
@@ -139,8 +144,11 @@ void WallaDbDestroy(WallaDb_t *walla_db)
     SimpleMmapPleaseDisposeOfThisCharArray(walla_db->mmap);
     walla_db->mmap = NULL;
     
-    fclose(walla_db->fp);
-    walla_db->fp = NULL;
+    if (NULL != walla_db->fp)
+    {
+        fclose(walla_db->fp);
+        walla_db->fp = NULL;
+    }
     
     LogDestroy(walla_db->log);
     walla_db->log = NULL;
@@ -214,7 +222,8 @@ WallaDb_t *WallaDbCreateDb(char *filename, long length, long scale_factor, int n
     WallaDbWriteMagic(walla_db);
     WallaDbSetBufLen(walla_db, length, scale_factor);
 
-    fwrite(&(walla_db->root), sizeof(walla_db->root), 1, walla_db->fp);
+    fwrite(&(walla_db->root), sizeof(walla_db->root), 
+           1, walla_db->fp);
 
     status = WallaDbSetupMemory(walla_db); /* TODO: check for success */
     

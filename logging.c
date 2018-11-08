@@ -36,7 +36,7 @@ log_t *LogCreate(char *path)
         return (NULL);
     }
     
-    log->fp = fopen(path, "a");
+    log->fp = fopen(path, "w");
     if (NULL == log->fp)
     {
         fprintf(stderr, "[LogCreate] Could not open log\n");
@@ -85,7 +85,7 @@ void LogDestroy(log_t *log)
         return;
     }
     
-    if (!log->is_builtin)
+    if (0 == log->is_builtin)
     {
         fclose(log->fp);
         log->fp = NULL;

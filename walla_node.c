@@ -67,6 +67,12 @@ WallaNode_t *WallaNodeInit(
     walla_node->parent = parent;
     walla_node->meta.depth = depth;
     walla_node->n_entries = n_entries;
+    walla_node->children = NULL;
+    
+    /* TODO: circbuf */
+    walla_node->circbuf_head = NULL;
+    walla_node->circbuf_tail = NULL;
+    
     WallaNodeInfoInit(log, &(walla_node->info), pos);
 
     return (walla_node);
