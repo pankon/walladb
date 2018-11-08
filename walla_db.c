@@ -196,13 +196,13 @@ WALLA_STATUS WallaDbDisconnect(WallaDb_t *db)
 /* 
  * Creates a db and thread workers
  */ 
-WallaDb_t *WallaDbCreateDb(char *filename, long length, long scale_factor)
+WallaDb_t *WallaDbCreateDb(char *filename, long length, long scale_factor, int n_layers)
 {
     FILE *fp = NULL;
     WallaDb_t *walla_db = NULL;
     WALLA_STATUS status = WALLA_SUCCESS;
 
-    if (NULL == (walla_db = WallaDbCreate(filename, length, scale_factor, WALLA_SERVER)))
+    if (NULL == (walla_db = WallaDbCreate(filename, length, scale_factor, WALLA_SERVER, n_layers)))
     {
         LogError(LogStdErr(), "[WallaDbCreateDb] :"
                               " error in db creation");
@@ -217,6 +217,8 @@ WallaDb_t *WallaDbCreateDb(char *filename, long length, long scale_factor)
     fwrite(&(walla_db->root), sizeof(walla_db->root), 1, walla_db->fp);
 
     status = WallaDbSetupMemory(walla_db); /* TODO: check for success */
+    
+    /* TODO: make layers */
 
     fclose(walla_db->fp);
     walla_db->fp = NULL;

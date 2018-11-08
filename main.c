@@ -24,11 +24,15 @@
 #include "walla_node_info.h"
 #include "walla_node.h"
 
-void TestBasicDb();
-void TestWallaEntry();
-void TestWallaNode();
-void TestWallaNodeUpdate(WallaNode_t *walla_node, WallaEntry_t *walla_entry, 
-    unsigned long time, double value);
+void TestBasicDb(log_t *log);
+void TestWallaEntry(log_t *log);
+void TestWallaNode(log_t *log);
+void TestWallaNodeUpdate(
+    log_t *log, 
+    WallaNode_t *walla_node, 
+    WallaEntry_t *walla_entry, 
+    unsigned long time, 
+    double value);
 
 int main(int argc, char **argv)
 {
@@ -55,7 +59,7 @@ void TestBasicDb(log_t *log)
     walla_db = NULL;
 }
 
-void TestWallaEntry()
+void TestWallaEntry(log_t *log)
 {
 	char *buffer = NULL;
     WallaEntry_t *walla_entry = NULL;
@@ -63,7 +67,7 @@ void TestWallaEntry()
     walla_entry = WallaEntryCreate(1000, 0.2342);
     
     buffer = WallaEntryToJson(walla_entry);
-    printf("entry: %s\n", buffer);
+    LogInfo(log, "entry: %s\n", buffer);
     free(buffer);
     
     WallaEntryDestroy(walla_entry);
@@ -78,54 +82,61 @@ void TestWallaNode(log_t *log)
     WallaPos_t *walla_pos = NULL;
     WallaEntry_t *walla_entry = NULL;
 
+    walla_pos = WallaPosCreate(log, 1, 3, 4);
 
-
-    walla_pos = WallaPosCreate(1, 3, 4);
-
-    walla_node = WallaNodeCreate(NULL, 0, 0, walla_pos);
+    walla_node = WallaNodeCreate(log, NULL, 0, 0, walla_pos);
     
     if (NULL == walla_node)
     {
-        LogError("[WallaNodeCreate failed]\n");
+        LogError(log, "[WallaNodeCreate failed]\n");
         return;
     }
 
-    buffer = WallaNodeToJson(walla_node);
+    buffer = WallaNodeToJson(log, walla_node);
     LogInfo(log, "node: %s", buffer);
     free(buffer);
 
-    buffer = WallaNodeInfoToJson(&(walla_node->info));
+    buffer = WallaNodeInfoToJson(log, &(walla_node->info));
     LogInfo(log, "node info: %s", buffer);
     free(buffer);
 
     walla_entry = WallaEntryCreate(1000, 0.2342);
-    WallaNodeUpdateWithEntry(walla_node, walla_entry);
+    WallaNodeUpdateWithEntry(log, walla_node, walla_entry);
 
-    buffer = WallaNodeInfoToJson(&(walla_node->info));
+    buffer = WallaNodeInfoToJson(log, &(walla_node->info));
     LogInfo(log, "node info: %s", buffer);
     free(buffer);
 
-    TestWallaNodeUpdate(walla_node, walla_entry, 100, 0.5);
-    TestWallaNodeUpdate(walla_node, walla_entry, 1020, 0.6);
-    TestWallaNodeUpdate(walla_node, walla_entry, 1034, 0.7);
-    TestWallaNodeUpdate(walla_node, walla_entry, 1100, -1.343);
+    TestWallaNodeUpdate(log, walla_node, 
+                        walla_entry, 100, 0.5);
+    TestWallaNodeUpdate(log, walla_node, 
+                        walla_entry, 1020, 0.6);
+    TestWallaNodeUpdate(log, walla_node, 
+                        walla_entry, 1034, 0.7);
+    TestWallaNodeUpdate(log, walla_node, 
+                        walla_entry, 1100, -1.343);
     
     WallaEntryDestroy(walla_entry);
     walla_entry = NULL;
-    WallaNodeDestroy(walla_node);
+    WallaNodeDestroy(log, walla_node);
     walla_node = NULL;
 }
 
-void TestWallaNodeUpdate(WallaNode_t *walla_node, WallaEntry_t *walla_entry, 
-    unsigned long time, double value)
+void TestWallaNodeUpdate(
+    log_t *log, 
+    WallaNode_t *walla_node, 
+    WallaEntry_t *walla_entry, 
+    unsigned long time, 
+    double value)
 {
     char *buffer = NULL;
 
-    walla_entry = WallaEntryInit(walla_entry, time, value);
-    WallaNodeUpdateWithEntry(walla_node, walla_entry);
+    walla_entry = WallaEntryInit(walla_entry, 
+                                 time, value);
+    WallaNodeUpdateWithEntry(log, walla_node, walla_entry);
 
-    buffer = WallaNodeInfoToJson(&(walla_node->info));
-    LogInfo("node info: %s", buffer);
+    buffer = WallaNodeInfoToJson(log, &(walla_node->info));
+    LogInfo(log, "node info: %s", buffer);
     free(buffer);
     buffer = NULL;
 }

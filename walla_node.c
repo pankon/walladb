@@ -22,23 +22,25 @@
 /*
  * Alloc's and creates a walla node
  */
-WallaNode_t *WallaNodeCreate(WallaNode_t *parent, int depth, int n_entries, WallaPos_t *pos)
+WallaNode_t *WallaNodeCreate(
+    log_t *log, WallaNode_t *parent, 
+    int depth, int n_entries, WallaPos_t *pos)
 {
     WallaNode_t *walla_node = NULL;
 
     if (NULL == pos)
     {
-        LogError("Null pos passed\n");
+        LogError(log, "[WallaNodeCreate] : Null pos passed\n");
         return (NULL);
     }
 
     if (NULL == (walla_node = malloc(sizeof(WallaNode_t))))
     {
-        LogError("Alloc failed\n");
+        LogError(log, "[WallaNodeCreate] : Alloc failed\n");
         return (NULL);
     }
 
-    return (WallaNodeInit(walla_node, parent, depth, n_entries, pos));
+    return (WallaNodeInit(log, walla_node, parent, depth, n_entries, pos));
 }
 
 /*
@@ -46,13 +48,17 @@ WallaNode_t *WallaNodeCreate(WallaNode_t *parent, int depth, int n_entries, Wall
  * zeroes existing memory
  * Inits WallaNodeInfo_t
  */
-WallaNode_t *WallaNodeInit(void *memory, WallaNode_t *parent, int depth, int n_entries, WallaPos_t *pos)
+WallaNode_t *WallaNodeInit(
+    log_t *log, void *memory, 
+    WallaNode_t *parent, 
+    int depth, int n_entries, WallaPos_t *pos)
 {
     WallaNode_t *walla_node = NULL;
 
     if (NULL == memory || NULL == pos)
     {
-        LogError("Null memory passed\n");
+        LogError(log, "[WallaNodeInit] :"
+                      " Null memory passed\n");
         return (NULL);
     }
 
@@ -61,41 +67,44 @@ WallaNode_t *WallaNodeInit(void *memory, WallaNode_t *parent, int depth, int n_e
     walla_node->parent = parent;
     walla_node->meta.depth = depth;
     walla_node->n_entries = n_entries;
-    WallaNodeInfoInit(&(walla_node->info), pos);
+    WallaNodeInfoInit(log, &(walla_node->info), pos);
 
     return (walla_node);
 }
 
-void WallaNodeDestroy(WallaNode_t *walla_node)
+void WallaNodeDestroy(log_t *log, WallaNode_t *walla_node)
 {
     if (NULL == walla_node)
     {
         return;
     }
 
-    WallaNodeZero(walla_node);
+    WallaNodeZero(log, walla_node);
 
     free(walla_node);
 }
 
-void WallaNodeZero(WallaNode_t *walla_node)
+void WallaNodeZero(log_t *log, WallaNode_t *walla_node)
 {
     if (NULL == walla_node)
     {
         return;
     }
 
-    WallaNodeDealloc(walla_node, 0);
+    WallaNodeDealloc(log, walla_node, 0);
 }
 
-void WallaNodeDealloc(WallaNode_t *walla_node, int next_free)
+void WallaNodeDealloc(
+    log_t *log, 
+    WallaNode_t *walla_node, 
+    int next_free)
 {
     if (NULL == walla_node)
     {
         return;
     }
 
-    WallaNodeInfoZero(&walla_node->info);
+    WallaNodeInfoZero(log, &walla_node->info);
     walla_node->parent = NULL;
 
     /* what about freeing the children? call some memory function which calls this again */
@@ -108,6 +117,7 @@ void WallaNodeDealloc(WallaNode_t *walla_node, int next_free)
 }
 
 WALLA_STATUS WallaNodeUpdateWithEntry(
+    log_t *log,
     WallaNode_t *walla_node, 
     WallaEntry_t *walla_entry
 )
@@ -118,7 +128,11 @@ WALLA_STATUS WallaNodeUpdateWithEntry(
     }
 
     /* TODO: Get number of actual entries in circbuf */
-    return WallaNodeInfoUpdateWithEntry(&(walla_node->info), walla_entry, &(walla_node->n_entries));
+    return WallaNodeInfoUpdateWithEntry(
+            log, 
+            &(walla_node->info), 
+            walla_entry, 
+            &(walla_node->n_entries));
 }
 
 /* 
@@ -126,7 +140,7 @@ WALLA_STATUS WallaNodeUpdateWithEntry(
  * requires walking over circular buffer and constructing
  * json from the WallaEntry_t's.
  */
-char *WallaNodeToJson(WallaNode_t *walla_node)
+char *WallaNodeToJson(log_t *log, WallaNode_t *walla_node)
 {
     /* TODO: Implement */
     return (JsonGetNull());
