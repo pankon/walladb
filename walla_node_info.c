@@ -20,18 +20,23 @@
 #include "walla_pos.h"
 #include "walla_node_info.h"
 
-WALLA_STATUS WallaNodeInfoUpdateTime(WallaNodeInfo_t *walla_node_info, 
-                                     unsigned long epoch)
+WALLA_STATUS WallaNodeInfoUpdateTime(
+    log_t *log,
+    WallaNodeInfo_t *walla_node_info, 
+    unsigned long epoch
+)
 {
     if (NULL == walla_node_info)
     {
-        LogError("[WallaNodeInfoUpdateTime] no walla_node_info passed");
+        LogError(log, "[WallaNodeInfoUpdateTime] :"
+                      " no walla_node_info passed");
         return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
     }
 
     if (0 == walla_node_info->epoch_start && 0 == walla_node_info->epoch_end)
     {
-        LogVerbose("[WallaNodeInfoUpdateTime] setting first node");
+        LogVerbose(log, "[WallaNodeInfoUpdateTime] :"
+                        " setting first node");
         walla_node_info->epoch_start = epoch;
         walla_node_info->epoch_end = epoch;
     }
@@ -54,9 +59,11 @@ double WallaNodeInfoGetNewAverage(double average, double value,
             / current_number_of_entries);  
 }
 
-double WallaNodeInfoGetNewStdev(double stddev, double old_mean, 
-                                double new_mean, double value, 
-                                long current_number_of_entries)
+double WallaNodeInfoGetNewStdev(
+    log_t *log,
+    double stddev, double old_mean, 
+    double new_mean, double value, 
+    long current_number_of_entries)
 {
     /* Sources for modified Welford's method:
      * https://math.stackexchange.com/questions/775391/can-i-calculate-the-new-standard-deviation-when-adding-a-value-without-knowing-t
@@ -68,27 +75,33 @@ double WallaNodeInfoGetNewStdev(double stddev, double old_mean,
     double numerator = ((current_number_of_entries - 1) * (stddev * stddev)) + lhs;
     double new_stddev = sqrt(numerator / (current_number_of_entries));
 
-    LogVerbose("{\"lhs\" = %f, \"numerator\": %f, \"new_stddev\" : %f}", 
+    LogVerbose(log, "{\"lhs\" = %f, \"numerator\": %f, \"new_stddev\" : %f}", 
         lhs, numerator, new_stddev);
 
     return new_stddev;
 }
 
-WALLA_STATUS WallaNodeInfoUpdateWithValue(WallaNodeInfo_t *walla_node_info, 
-                                          double value, long *current_number_of_entries)
+WALLA_STATUS WallaNodeInfoUpdateWithValue(
+    log_t *log, 
+    WallaNodeInfo_t *walla_node_info, 
+    double value, 
+    long *current_number_of_entries
+)
 {
     double old_mean = 0;
 
     if (NULL == current_number_of_entries || NULL == walla_node_info)
     {
-        LogError("[WallaNodeInfoUpdateWithValue : no current_number_of_entries"
-                 "or walla_node_info passed");
+        LogError(log, "[WallaNodeInfoUpdateWithValue :"
+                      " no current_number_of_entries"
+                      " or walla_node_info passed");
         return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
     }
 
     if (0 == walla_node_info->max && 0 == walla_node_info->min)
     {
-        LogVerbose("[WallaNodeInfoUpdateWithValue] setting first node");
+        LogVerbose(log, "[WallaNodeInfoUpdateWithValue] :"
+                   " setting first node");
         walla_node_info->max = value;
         walla_node_info->min = value;
     }
@@ -105,10 +118,12 @@ WALLA_STATUS WallaNodeInfoUpdateWithValue(WallaNodeInfo_t *walla_node_info,
     old_mean = walla_node_info->average;
 
     walla_node_info->average = WallaNodeInfoGetNewAverage(
+
         walla_node_info->average, 
         value, *current_number_of_entries);
 
     walla_node_info->stdev = WallaNodeInfoGetNewStdev(
+        log,
         walla_node_info->stdev, 
         walla_node_info->average, old_mean, 
         value, *current_number_of_entries);
@@ -117,6 +132,7 @@ WALLA_STATUS WallaNodeInfoUpdateWithValue(WallaNodeInfo_t *walla_node_info,
 }
 
 WALLA_STATUS WallaNodeInfoUpdateWithEntry(
+    log_t *log,
     WallaNodeInfo_t *walla_node_info, 
     WallaEntry_t *walla_entry,
     long *current_number_of_entries
@@ -126,26 +142,37 @@ WALLA_STATUS WallaNodeInfoUpdateWithEntry(
 
     if (NULL == walla_node_info || NULL == walla_entry)
     {
+        LogError(log, "[WallaNodeInfoUpdateWithEntry] : "
+                 "You forgot to pass anything");
         return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
     }
 
-    status = WallaNodeInfoUpdateTime(walla_node_info, walla_entry->epoch);
+    status = WallaNodeInfoUpdateTime(log, walla_node_info,
+                                     walla_entry->epoch);
     if (status != WALLA_SUCCESS)
     {
+        LogError(log, "[WallaNodeInfoUpdateWithEntry] : "
+                 "Error updating time");
         return (status);
     }
 
-    status = WallaNodeInfoUpdateWithValue(walla_node_info, walla_entry->value, 
-                                          current_number_of_entries);
+    status = WallaNodeInfoUpdateWithValue(log,
+                walla_node_info, walla_entry->value,    
+                current_number_of_entries);
 
     return (status);
 }
 
-WALLA_STATUS WallaNodeInfoInit(WallaNodeInfo_t *walla_node_info, WallaPos_t *pos)
+WALLA_STATUS WallaNodeInfoInit(
+    log_t *log, 
+    WallaNodeInfo_t *walla_node_info, 
+    WallaPos_t *pos
+)
 {
     if (NULL == walla_node_info || NULL == pos)
     {
-        LogError("[WallaNodeInfoInit] No walla_node_info or walla_pos passed");
+        LogError(log, "[WallaNodeInfoInit] :"
+                 " No walla_node_info or walla_pos passed");
         return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
     }
 
@@ -160,14 +187,15 @@ WALLA_STATUS WallaNodeInfoInit(WallaNodeInfo_t *walla_node_info, WallaPos_t *pos
     return (WALLA_SUCCESS);
 }
 
-void WallaNodeInfoZero(WallaNodeInfo_t *walla_node_info)
+void WallaNodeInfoZero(log_t *log, 
+                       WallaNodeInfo_t *walla_node_info)
 {
     if (NULL == walla_node_info)
     {
         return;
     }
 
-    WallaPosZero(&(walla_node_info->pos));
+    WallaPosZero(log, &(walla_node_info->pos));
     walla_node_info->epoch_start = 0;
     walla_node_info->epoch_end = 0;
     walla_node_info->average = 0;
@@ -185,7 +213,8 @@ void WallaNodeInfoZero(WallaNodeInfo_t *walla_node_info)
  *     "std" : 13.32459
  *  } }
  */
-char *WallaNodeInfoToJson(WallaNodeInfo_t *walla_node_info)
+char *WallaNodeInfoToJson(log_t *log, 
+                          WallaNodeInfo_t *walla_node_info)
 {
     static char *walla_node_info_to_json = 
         "{\"(%lu, %lu, %lu, %lu, %lu)\":"
@@ -200,7 +229,8 @@ char *WallaNodeInfoToJson(WallaNodeInfo_t *walla_node_info)
 
     if (walla_node_info == NULL)
     {
-        LogInfo("[WallaNodeInfoToJson] : walla_node_info is null");
+        LogInfo(log, "[WallaNodeInfoToJson] :"
+                     " walla_node_info is null");
         return (JsonGetNull());
     }
 
@@ -219,7 +249,8 @@ char *WallaNodeInfoToJson(WallaNodeInfo_t *walla_node_info)
         );
     if (-1 == len)
     {
-        LogError("[WallaNodeInfoToJson] asprintf failed");
+        LogError(log, "[WallaNodeInfoToJson] :"
+                      " asprintf failed");
         return (JsonGetNull());
     }
     

@@ -15,26 +15,27 @@
 #include "logging.h"
 #include "walla_pos.h"
 
-WallaPos_t *WallaPosCreate(long x, long y, long z)
+WallaPos_t *WallaPosCreate(log_t *log, long x, long y, long z)
 {
 	WallaPos_t *walla_pos = NULL;
 
 	if (NULL == (walla_pos = malloc(sizeof(WallaPos_t))))
 	{
-		LogError("[WallaPosCreate] malloc failed");
+		LogError(log, "[WallaPosCreate] malloc failed");
 		return (NULL);
 	}
 
-	return (WallaPosInit(walla_pos, x, y, z));
+	return (WallaPosInit(log, walla_pos, x, y, z));
 }
 
-WallaPos_t *WallaPosInit(void *memory, long x, long y, long z)
+WallaPos_t *WallaPosInit(log_t *log, void *memory, 
+                         long x, long y, long z)
 {
 	WallaPos_t *walla_pos = NULL;
 
 	if (NULL == memory)
 	{
-		LogError("[WallaPosCreate] null memory passed");
+		LogError(log, "[WallaPosCreate] null memory passed");
 		return (NULL);
 	}
 
@@ -47,14 +48,14 @@ WallaPos_t *WallaPosInit(void *memory, long x, long y, long z)
 	return (walla_pos);
 }
 
-void WallaPosZero(WallaPos_t *walla_pos)
+void WallaPosZero(log_t *log, WallaPos_t *walla_pos)
 {
-	WallaPosInit(walla_pos, 0, 0, 0);
+	WallaPosInit(log, walla_pos, 0, 0, 0);
 }
 
-void WallaPosDestroy(WallaPos_t *walla_pos)
+void WallaPosDestroy(log_t *log, WallaPos_t *walla_pos)
 {
-	WallaPosZero(walla_pos);
+	WallaPosZero(log, walla_pos);
 
 	free(walla_pos);
 	walla_pos = NULL;

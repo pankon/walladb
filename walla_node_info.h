@@ -14,6 +14,7 @@
 #ifndef __WALLA_NODE_INFO_H__
 #define __WALLA_NODE_INFO_H__
 
+#include "logging.h"
 #include "walla_status.h"
 #include "walla_pos.h"
 #include "walla_entry.h"
@@ -29,17 +30,24 @@ typedef struct WallaNodeInfo {
 } WallaNodeInfo_t;
 
 WALLA_STATUS WallaNodeInfoUpdateWithEntry(
+    log_t *log,
     WallaNodeInfo_t *walla_node_info, 
     WallaEntry_t *walla_entry,
     long *current_number_of_entries
 );
 
-WALLA_STATUS WallaNodeInfoInit(WallaNodeInfo_t *walla_node_info, WallaPos_t *pos);
-void WallaNodeInfoZero(WallaNodeInfo_t *walla_node_info);
+WALLA_STATUS WallaNodeInfoInit(
+    log_t *log,
+    WallaNodeInfo_t *walla_node_info, 
+    WallaPos_t *pos);
+    
+void WallaNodeInfoZero(log_t *log, 
+                       WallaNodeInfo_t *walla_node_info);
 
 /* 
  * Turns WallaNodeInfo into a json string
  */
-char *WallaNodeInfoToJson(WallaNodeInfo_t *walla_node_info);
+char *WallaNodeInfoToJson(log_t *log, 
+                          WallaNodeInfo_t *walla_node_info);
 
 #endif /* __WALLA_NODE_INFO_H__ */

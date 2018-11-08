@@ -32,12 +32,19 @@ void TestWallaNodeUpdate(WallaNode_t *walla_node, WallaEntry_t *walla_entry,
 
 int main(int argc, char **argv)
 {
-    TestBasicDb();
+	log_t *log = NULL;
+	
+    log = LogStdErr();
+	
+    TestBasicDb(log);  
+    
+    LogDestroy(log);
+    log = NULL;
 
     return (0);
 }
 
-void TestBasicDb()
+void TestBasicDb(log_t *log)
 {
     char *filename = "test.db";
     WallaDb_t *walla_db = NULL;
@@ -63,12 +70,15 @@ void TestWallaEntry()
     walla_entry = NULL;
 }
 
-void TestWallaNode()
+void TestWallaNode(log_t *log)
 {
 	char *buffer = NULL;
+
     WallaNode_t *walla_node = NULL;
     WallaPos_t *walla_pos = NULL;
     WallaEntry_t *walla_entry = NULL;
+
+
 
     walla_pos = WallaPosCreate(1, 3, 4);
 
@@ -81,18 +91,18 @@ void TestWallaNode()
     }
 
     buffer = WallaNodeToJson(walla_node);
-    LogInfo("node: %s", buffer);
+    LogInfo(log, "node: %s", buffer);
     free(buffer);
 
     buffer = WallaNodeInfoToJson(&(walla_node->info));
-    LogInfo("node info: %s", buffer);
+    LogInfo(log, "node info: %s", buffer);
     free(buffer);
 
     walla_entry = WallaEntryCreate(1000, 0.2342);
     WallaNodeUpdateWithEntry(walla_node, walla_entry);
 
     buffer = WallaNodeInfoToJson(&(walla_node->info));
-    LogInfo("node info: %s", buffer);
+    LogInfo(log, "node info: %s", buffer);
     free(buffer);
 
     TestWallaNodeUpdate(walla_node, walla_entry, 100, 0.5);

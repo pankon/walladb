@@ -13,16 +13,19 @@
 #ifndef __WALLA_POS_H__
 #define __WALLA_POS_H__
 
+#include "logging.h"
+
 typedef struct WallaPos {
     long x;
     long y;
     long z;
 } WallaPos_t;
 
-WallaPos_t *WallaPosCreate(long x, long y, long z);
-WallaPos_t *WallaPosInit(void *memory, long x, long y, long z);
-void WallaPosZero(WallaPos_t *walla_pos);
-void WallaPosDestroy(WallaPos_t *walla_pos);
+WallaPos_t *WallaPosCreate(log_t *log, long x, long y, long z);
+WallaPos_t *WallaPosInit(log_t *log, void *memory, 
+                         long x, long y, long z);
+void WallaPosZero(log_t *log, WallaPos_t *walla_pos);
+void WallaPosDestroy(log_t *log, WallaPos_t *walla_pos);
 
 WallaPos_t *WallaPosDistance(WallaPos_t *a, WallaPos_t *b);
 

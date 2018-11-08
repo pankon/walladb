@@ -13,6 +13,7 @@
 #ifndef __WALLA_NODE_H__
 #define __WALLA_NODE_H__
 
+#include "logging.h" /* TODO */
 #include "walla_pos.h"
 #include "walla_node_info.h"
 
@@ -32,20 +33,21 @@ typedef struct WallaNode {
 /*
  * Alloc's and creates a walla node
  */
-WallaNode_t *WallaNodeCreate(WallaNode_t *parent, int depth, int n_entries, WallaPos_t *pos);
+WallaNode_t *WallaNodeCreate(log_t *log, WallaNode_t *parent, int depth, int n_entries, WallaPos_t *pos);
 
 /*
  * Creates a walla node on existing memory
  * zeroes existing memory
  * Inits WallaNodeInfo_t
  */
-WallaNode_t *WallaNodeInit(void *memory, WallaNode_t *parent, int depth, int n_entries, WallaPos_t *pos);
+WallaNode_t *WallaNodeInit(log_t *log, void *memory, WallaNode_t *parent, int depth, int n_entries, WallaPos_t *pos);
 
-void WallaNodeDestroy(WallaNode_t *walla_node);
-void WallaNodeZero(WallaNode_t *walla_node);
-void WallaNodeDealloc(WallaNode_t *walla_node, int next_free);
+void WallaNodeDestroy(log_t *log, WallaNode_t *walla_node);
+void WallaNodeZero(log_t *log, WallaNode_t *walla_node);
+void WallaNodeDealloc(log_t *log, WallaNode_t *walla_node, int next_free);
 
 WALLA_STATUS WallaNodeUpdateWithEntry(
+    log_t *log, 
     WallaNode_t *walla_node, 
     WallaEntry_t *walla_entry
 );
@@ -53,6 +55,6 @@ WALLA_STATUS WallaNodeUpdateWithEntry(
 /* 
  * Turns WallaNode into a json string
  */
-char *WallaNodeToJson(WallaNode_t *walla_node);
+char *WallaNodeToJson(log_t *log, WallaNode_t *walla_node);
 
 #endif /* __WALLA_NODE_H__ */

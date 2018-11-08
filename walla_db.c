@@ -36,6 +36,7 @@ typedef struct WallaClient {
 
 struct WallaDb {
     char *filename;
+    log_t *log;
     FILE *fp;           /* initial stage */
     mmap_t *mmap;
     long length;
@@ -54,25 +55,45 @@ WallaDb_t *WallaDbCreate(char *filename, long length, long scale_factor, int is_
 {
     WallaDb_t *walla_db = NULL;
     WallaPos_t *pos = NULL;
+    log_t *log = NULL;
     size_t filename_len = 0;
     char *filename_copy = NULL;
+    char *log_filename = NULL;
 
     if (NULL == filename)
     {
-        LogError("[WallaDbCreate] no filename passed");
+        LogError(LogStdErr(), "[WallaDbCreate] no filename passed");
         return (NULL);
     }
 
     filename_len = strlen(filename);
+    if (NULL == (log_filename = malloc(filename_len + 4)))
+    {
+        LogError(LogStdErr(), "[WallaDbCreate] error in malloc"
+                              " of log filename");
+    }
+    
+    strcpy(log_filename, filename);
+    strcpy(log_filename + filename_len, ".log");
+    
+    if (NULL == (log = LogCreate(log_filename)))
+    {
+        LogError(LogStdErr(), "[WallaDbCreate] LogCreate"
+                              " error");
+        return (NULL);
+    }
+   
     if (NULL == (filename_copy = malloc(filename_len)))
     {
-        LogError("[WallaDbCreate] error in malloc of str");
+        LogError(log, "[WallaDbCreate] error in malloc of str");
+        LogDestroy(log);
         return (NULL);
     }
 
-    if (NULL == (pos = WallaPosCreate(0, 0, 0)))
+    if (NULL == (pos = WallaPosCreate(log, 0, 0, 0)))
     {
-        LogError("[WallaDbCreate] WallaPosCreate error");
+        LogError(log, "[WallaDbCreate] WallaPosCreate error");
+        LogDestroy(log);
         return (NULL);
     }
 
@@ -80,7 +101,9 @@ WallaDb_t *WallaDbCreate(char *filename, long length, long scale_factor, int is_
 
     if (NULL == (walla_db = malloc(sizeof(WallaDb_t))))
     {
-        LogError("[WallaDbCreate] error in malloc");
+        LogError(log, "[WallaDbCreate] error in malloc");
+        LogDestroy(log);
+        WallaPosDestroy(log, pos);
         return (NULL);
     }
 
@@ -90,9 +113,11 @@ WallaDb_t *WallaDbCreate(char *filename, long length, long scale_factor, int is_
     walla_db->length = length;
     walla_db->scale_factor = scale_factor;
     walla_db->free_list_start = 0;
+    walla_db->log = log;
     
-    WallaNodeInit(&(walla_db->root), NULL, 0, length, pos);
-    WallaPosDestroy(pos);
+    WallaNodeInit(log, &(walla_db->root), 
+                  NULL, 0, length, pos);
+    WallaPosDestroy(log, pos);
     pos = NULL;
 
     walla_db->is_server = is_server;
@@ -116,6 +141,9 @@ void WallaDbDestroy(WallaDb_t *walla_db)
     
     fclose(walla_db->fp);
     walla_db->fp = NULL;
+    
+    LogDestroy(walla_db->log);
+    walla_db->log = NULL;
 
     /* TODO setup/teardown of client/server */
     walla_db->connection.server = NULL;
@@ -176,7 +204,8 @@ WallaDb_t *WallaDbCreateDb(char *filename, long length, long scale_factor)
 
     if (NULL == (walla_db = WallaDbCreate(filename, length, scale_factor, WALLA_SERVER)))
     {
-        LogError("[WallaDbCreateDb] error in db creation");
+        LogError(LogStdErr(), "[WallaDbCreateDb] :"
+                              " error in db creation");
         return (NULL);
     }
 
@@ -202,13 +231,14 @@ WALLA_STATUS WallaDbWriteMagic(WallaDb_t *db)
 {
     if (NULL == db)
     {
-        LogError("[WallaDbWriteMagic] you forgot to pass a db");
+        LogError(LogStdErr(), "[WallaDbWriteMagic] :"
+                              " you forgot to pass a db");
         return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
     }
 
     if (NULL == db->fp)
     {
-        LogError("[WallaDbWriteMagic] no file open");
+        LogError(db->log, "[WallaDbWriteMagic] no file open");
         return (WALLA_NO_FILE_OPENED);
     }
 
@@ -226,13 +256,14 @@ WALLA_STATUS WallaDbSetBufLen(WallaDb_t *db, long length, long scale_factor)
 {
     if (NULL == db)
     {
-        LogError("[WallaDbSetBufLen] you forgot to pass a db");
+        LogError(LogStdErr(), "[WallaDbSetBufLen] :"
+                 " you forgot to pass a db");
         return (WALLA_YOU_FORGOT_TO_PASS_ANYTHING);
     }
 
     if (NULL == db->fp)
     {
-        LogError("[WallaDbSetBufLen] no file open");
+        LogError(db->log, "[WallaDbSetBufLen] : no file open");
         return (WALLA_NO_FILE_OPENED);
     }
 
